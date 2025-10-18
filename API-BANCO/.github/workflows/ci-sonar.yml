@@ -28,7 +28,11 @@ jobs:
         run: npm run test:ci
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        # Pin the action to a full commit SHA to avoid supply-chain surprises.
+        # Replace the example SHA below with the latest commit SHA from the action's repository.
+        # To find the SHA: visit https://github.com/SonarSource/sonarcloud-github-action/commits
+        # pick the tag or commit you trust and copy the full 40-char SHA. Then replace the value.
+        uses: SonarSource/sonarcloud-github-action@0123456789abcdef0123456789abcdef01234567
         with:
           args: >
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
