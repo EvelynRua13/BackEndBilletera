@@ -32,7 +32,7 @@ jobs:
         # Replace the example SHA below with the latest commit SHA from the action's repository.
         # To find the SHA: visit https://github.com/SonarSource/sonarcloud-github-action/commits
         # pick the tag or commit you trust and copy the full 40-char SHA. Then replace the value.
-        uses: SonarSource/sonarcloud-github-action@0123456789abcdef0123456789abcdef01234567
+        uses: SonarSource/sonarcloud-github-action@ba3875ecf642b2129de2b589510c81a8b53dbf4e
         with:
           args: >
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
