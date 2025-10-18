@@ -9,6 +9,25 @@ const createMockConnection = () => ({
   release: jest.fn(),
 });
 
+// Helper to extract SQL text safely from different possible shapes
+function sqlToString(sql) {
+  if (typeof sql === 'string') return sql;
+  if (sql && typeof sql.sql === 'string') return sql.sql;
+  if (sql && typeof sql.text === 'string') return sql.text;
+  return JSON.stringify(sql || '');
+}
+
+// Create a responder for mockConnection.query from a map: key -> returnValue
+function createSqlResponder(map, defaultValue = [[]]) {
+  return async function (sql) {
+    const s = sqlToString(sql);
+    for (const key of Object.keys(map)) {
+      if (s.includes(key)) return map[key];
+    }
+    return defaultValue;
+  };
+}
+
 describe('prestamosController', () => {
   beforeEach(() => {
     jest.resetAllMocks();
@@ -37,23 +56,9 @@ describe('prestamosController', () => {
   test('crearSolicitudPrestamo - usuario con préstamo activo produce error (500) y rollback', async () => {
     const mockConnection = createMockConnection();
     // Implementación más robusta que responde según el SQL
-    mockConnection.query.mockImplementation(async sql => {
-      // Obtener una representación segura del SQL: puede ser string, objeto con .sql/.text, o fallback a JSON
-      let s;
-      if (typeof sql === 'string') {
-        s = sql;
-      } else if (sql && typeof sql.sql === 'string') {
-        s = sql.sql;
-      } else if (sql && typeof sql.text === 'string') {
-        s = sql.text;
-      } else {
-        s = JSON.stringify(sql || '');
-      }
-      if (s.includes('SELECT COUNT')) {
-        return [[{ count: 1 }]]; // filas en primera posición
-      }
-      return [[]];
-    });
+    mockConnection.query.mockImplementation(
+      createSqlResponder({ 'SELECT COUNT': [[{ count: 1 }]] }, [[]])
+    );
 
     jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
@@ -80,23 +85,16 @@ describe('prestamosController', () => {
   test('crearSolicitudPrestamo - éxito devuelve 201 con prestamoId', async () => {
   const mockConnection = createMockConnection();
   // Implementación por SQL para este escenario
-  mockConnection.query.mockImplementation(async sql => {
-    // Obtener una representación segura del SQL: puede ser string, objeto con .sql/.text, o fallback a JSON
-    let s;
-    if (typeof sql === 'string') {
-      s = sql;
-    } else if (sql && typeof sql.sql === 'string') {
-      s = sql.sql;
-    } else if (sql && typeof sql.text === 'string') {
-      s = sql.text;
-    } else {
-      s = JSON.stringify(sql || '');
-    }
-    if (s.includes('SELECT COUNT')) return [[{ count: 0 }]];
-    if (s.includes('INSERT INTO deudas')) return [{ insertId: 55 }];
-    if (s.includes('UPDATE usuarios')) return [{}];
-    return [[]];
-  });
+  mockConnection.query.mockImplementation(
+    createSqlResponder(
+      {
+        'SELECT COUNT': [[{ count: 0 }]],
+        'INSERT INTO deudas': [{ insertId: 55 }],
+        'UPDATE usuarios': [{}],
+      },
+      [[]]
+    )
+  );
 
     jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
@@ -140,23 +138,16 @@ describe('prestamosController', () => {
   test('actualizarEstadoPrestamo - transición válida: éxito y commit', async () => {
     const mockConnection = createMockConnection();
     // Implementación por SQL para simular SELECT y siguientes queries
-    mockConnection.query.mockImplementation(async sql => {
-      // Obtener una representación segura del SQL: puede ser string, objeto con .sql/.text, o fallback a JSON
-      let s;
-      if (typeof sql === 'string') {
-        s = sql;
-      } else if (sql && typeof sql.sql === 'string') {
-        s = sql.sql;
-      } else if (sql && typeof sql.text === 'string') {
-        s = sql.text;
-      } else {
-        s = JSON.stringify(sql || '');
-      }
-      if (s.includes('SELECT estado')) return [[{ estado: 'pendiente', monto: 1000 }]];
-      // cualquier UPDATE/INSERT siguiente devuelve estructura genérica
-      if (s.includes('UPDATE deudas') || s.includes('INSERT INTO deudas')) return [{}];
-      return [[]];
-    });
+    mockConnection.query.mockImplementation(
+      createSqlResponder(
+        {
+          'SELECT estado': [[{ estado: 'pendiente', monto: 1000 }]],
+          'UPDATE deudas': [{}],
+          'INSERT INTO deudas': [{}],
+        },
+        [[]]
+      )
+    );
 
     jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
