@@ -13,7 +13,7 @@ describe('ingresosController - agregarIngreso', () => {
   });
 
   test('datos inválidos devuelve 400', async () => {
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => createMockConnection(),
     }));
 
@@ -32,7 +32,7 @@ describe('ingresosController - agregarIngreso', () => {
     const mockConnection = createMockConnection();
     mockConnection.query.mockRejectedValueOnce(new Error('DB failure'));
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 
@@ -54,7 +54,7 @@ describe('ingresosController - agregarIngreso', () => {
     const mockConnection = createMockConnection();
     mockConnection.query.mockResolvedValueOnce([{}]);
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 

@@ -12,7 +12,7 @@ describe('egresosController - agregarEgreso', () => {
   });
 
   test('datos inválidos devuelve 400', async () => {
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => createMockConnection(),
     }));
 
@@ -31,7 +31,7 @@ describe('egresosController - agregarEgreso', () => {
     const mockConnection = createMockConnection();
     mockConnection.query.mockRejectedValueOnce(new Error('DB failure'));
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 
@@ -53,7 +53,7 @@ describe('egresosController - agregarEgreso', () => {
     const mockConnection = createMockConnection();
     mockConnection.query.mockResolvedValueOnce([{}]);
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 

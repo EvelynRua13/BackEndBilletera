@@ -17,7 +17,7 @@ describe('prestamosController', () => {
   });
 
   test('crearSolicitudPrestamo - datos inválidos devuelve 400', async () => {
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => createMockConnection(),
     }));
 
@@ -38,13 +38,13 @@ describe('prestamosController', () => {
     const mockConnection = createMockConnection();
     // Implementación más robusta que responde según el SQL
     mockConnection.query.mockImplementation(async sql => {
-      if (sql && sql.toString().includes('SELECT COUNT')) {
+      if (sql?.toString()?.includes('SELECT COUNT')) {
         return [[{ count: 1 }]]; // filas en primera posición
       }
       return [[]];
     });
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 
@@ -70,14 +70,14 @@ describe('prestamosController', () => {
     const mockConnection = createMockConnection();
     // Implementación por SQL para este escenario
     mockConnection.query.mockImplementation(async sql => {
-      const s = sql && sql.toString();
-      if (s.includes('SELECT COUNT')) return [[{ count: 0 }]];
-      if (s.includes('INSERT INTO deudas')) return [{ insertId: 55 }];
-      if (s.includes('UPDATE usuarios')) return [{}];
+      const s = sql?.toString();
+      if (s?.includes('SELECT COUNT')) return [[{ count: 0 }]];
+      if (s?.includes('INSERT INTO deudas')) return [{ insertId: 55 }];
+      if (s?.includes('UPDATE usuarios')) return [{}];
       return [[]];
     });
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 
@@ -99,7 +99,7 @@ describe('prestamosController', () => {
   });
 
   test('actualizarEstadoPrestamo - datos faltantes devuelve 400', async () => {
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => createMockConnection(),
     }));
 
@@ -120,14 +120,14 @@ describe('prestamosController', () => {
     const mockConnection = createMockConnection();
     // Implementación por SQL para simular SELECT y siguientes queries
     mockConnection.query.mockImplementation(async sql => {
-      const s = sql && sql.toString();
-      if (s.includes('SELECT estado')) return [[{ estado: 'pendiente', monto: 1000 }]];
+      const s = sql?.toString();
+      if (s?.includes('SELECT estado')) return [[{ estado: 'pendiente', monto: 1000 }]];
       // cualquier UPDATE/INSERT siguiente devuelve estructura genérica
-      if (s.includes('UPDATE deudas') || s.includes('INSERT INTO deudas')) return [{}];
+      if (s?.includes('UPDATE deudas') || s?.includes('INSERT INTO deudas')) return [{}];
       return [[]];
     });
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 

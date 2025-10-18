@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 
 let mockConnection;
 
-await jest.unstable_mockModule('../database/database.js', () => {
+jest.unstable_mockModule('../database/database.js', () => {
   mockConnection = {
     beginTransaction: jest.fn(),
     query: jest.fn(),

@@ -1,7 +1,8 @@
+// Removed duplicate test block that imported getUserData to avoid redeclaring the same binding.
 import { jest } from '@jest/globals';
 
 // Mock de la función getConnection antes de importar el módulo bajo prueba
-await jest.unstable_mockModule('../database/database.js', () => ({
+jest.unstable_mockModule('../database/database.js', () => ({
   getConnection: jest.fn(),
 }));
 

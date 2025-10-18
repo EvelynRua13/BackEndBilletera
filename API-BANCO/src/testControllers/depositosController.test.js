@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 
 let mockConnection;
 
-await jest.unstable_mockModule('../database/database.js', () => {
+jest.unstable_mockModule('../database/database.js', () => {
   mockConnection = {
     beginTransaction: jest.fn(),
     query: jest.fn(),
@@ -57,6 +57,18 @@ describe('realizarDeposito', () => {
   it('debe retornar 500 si hay error en BD', async () => {
     mockConnection.query.mockRejectedValueOnce(new Error('DB error'));
     await realizarDeposito(req, res);
+    expect(mockConnection.rollback).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  it('debe manejar error durante rollback y registrar el error', async () => {
+    // Simula error primario en query y fallo en rollback
+    mockConnection.query.mockRejectedValueOnce(new Error('DB error'));
+    mockConnection.rollback.mockRejectedValueOnce(new Error('rollback failed'));
+
+    await realizarDeposito(req, res);
+
+    // Asegurar que intentó rollback incluso si rollback falló
     expect(mockConnection.rollback).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(500);
   });

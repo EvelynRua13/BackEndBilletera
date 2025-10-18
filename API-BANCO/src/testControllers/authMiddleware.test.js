@@ -7,7 +7,7 @@ describe('authenticateToken middleware', () => {
   });
 
   test('sin token en headers devuelve 401', async () => {
-    await jest.unstable_mockModule('jsonwebtoken', () => ({
+    jest.unstable_mockModule('jsonwebtoken', () => ({
       default: { verify: jest.fn() },
     }));
 
@@ -26,7 +26,7 @@ describe('authenticateToken middleware', () => {
 
   test('token inválido devuelve 403', async () => {
     // Mock de jsonwebtoken.verify para simular error
-    await jest.unstable_mockModule('jsonwebtoken', () => ({
+    jest.unstable_mockModule('jsonwebtoken', () => ({
       default: { verify: (token, secret, cb) => cb(new Error('invalid token')) },
     }));
 
@@ -45,7 +45,7 @@ describe('authenticateToken middleware', () => {
 
   test('token válido llama a next y setea req.user', async () => {
     const decoded = { id: 42, email: 'a@b.com' };
-    await jest.unstable_mockModule('jsonwebtoken', () => ({
+    jest.unstable_mockModule('jsonwebtoken', () => ({
       default: { verify: (token, secret, cb) => cb(null, decoded) },
     }));
 

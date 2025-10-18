@@ -116,7 +116,9 @@ describe('prestamosController - extra cases', () => {
     const mockConnection = createMockConnection();
     mockConnection.query.mockImplementation(async sql => {
       // incluir el SQL en el mensaje de error para reutilizar el parámetro y facilitar debugging
-      throw new Error(`DB unexpected error: ${String(sql)}`);
+      // Evitar coerción implícita de objetos a cadena (String(sql)) para cumplir reglas de calidad.
+      const sqlText = typeof sql === 'string' ? sql : (sql?.sql ?? sql?.text ?? JSON.stringify(sql));
+      throw new Error(`DB unexpected error: ${sqlText}`);
     });
 
     jest.unstable_mockModule('../database/database.js', () => ({

@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 // Mockear mysql2/promise createPool to capture .end
-await jest.unstable_mockModule('mysql2/promise', () => ({
+jest.unstable_mockModule('mysql2/promise', () => ({
   default: {
     createPool: jest.fn(() => ({
       end: jest.fn(() => Promise.resolve()),
