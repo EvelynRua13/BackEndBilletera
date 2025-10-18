@@ -38,7 +38,18 @@ describe('prestamosController', () => {
     const mockConnection = createMockConnection();
     // Implementación más robusta que responde según el SQL
     mockConnection.query.mockImplementation(async sql => {
-      if (sql?.toString()?.includes('SELECT COUNT')) {
+      // Obtener una representación segura del SQL: puede ser string, objeto con .sql/.text, o fallback a JSON
+      let s;
+      if (typeof sql === 'string') {
+        s = sql;
+      } else if (sql && typeof sql.sql === 'string') {
+        s = sql.sql;
+      } else if (sql && typeof sql.text === 'string') {
+        s = sql.text;
+      } else {
+        s = JSON.stringify(sql || '');
+      }
+      if (s.includes('SELECT COUNT')) {
         return [[{ count: 1 }]]; // filas en primera posición
       }
       return [[]];
@@ -67,15 +78,25 @@ describe('prestamosController', () => {
   });
 
   test('crearSolicitudPrestamo - éxito devuelve 201 con prestamoId', async () => {
-    const mockConnection = createMockConnection();
-    // Implementación por SQL para este escenario
-    mockConnection.query.mockImplementation(async sql => {
-      const s = sql?.toString();
-      if (s?.includes('SELECT COUNT')) return [[{ count: 0 }]];
-      if (s?.includes('INSERT INTO deudas')) return [{ insertId: 55 }];
-      if (s?.includes('UPDATE usuarios')) return [{}];
-      return [[]];
-    });
+  const mockConnection = createMockConnection();
+  // Implementación por SQL para este escenario
+  mockConnection.query.mockImplementation(async sql => {
+    // Obtener una representación segura del SQL: puede ser string, objeto con .sql/.text, o fallback a JSON
+    let s;
+    if (typeof sql === 'string') {
+      s = sql;
+    } else if (sql && typeof sql.sql === 'string') {
+      s = sql.sql;
+    } else if (sql && typeof sql.text === 'string') {
+      s = sql.text;
+    } else {
+      s = JSON.stringify(sql || '');
+    }
+    if (s.includes('SELECT COUNT')) return [[{ count: 0 }]];
+    if (s.includes('INSERT INTO deudas')) return [{ insertId: 55 }];
+    if (s.includes('UPDATE usuarios')) return [{}];
+    return [[]];
+  });
 
     jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
@@ -120,10 +141,20 @@ describe('prestamosController', () => {
     const mockConnection = createMockConnection();
     // Implementación por SQL para simular SELECT y siguientes queries
     mockConnection.query.mockImplementation(async sql => {
-      const s = sql?.toString();
-      if (s?.includes('SELECT estado')) return [[{ estado: 'pendiente', monto: 1000 }]];
+      // Obtener una representación segura del SQL: puede ser string, objeto con .sql/.text, o fallback a JSON
+      let s;
+      if (typeof sql === 'string') {
+        s = sql;
+      } else if (sql && typeof sql.sql === 'string') {
+        s = sql.sql;
+      } else if (sql && typeof sql.text === 'string') {
+        s = sql.text;
+      } else {
+        s = JSON.stringify(sql || '');
+      }
+      if (s.includes('SELECT estado')) return [[{ estado: 'pendiente', monto: 1000 }]];
       // cualquier UPDATE/INSERT siguiente devuelve estructura genérica
-      if (s?.includes('UPDATE deudas') || s?.includes('INSERT INTO deudas')) return [{}];
+      if (s.includes('UPDATE deudas') || s.includes('INSERT INTO deudas')) return [{}];
       return [[]];
     });
 
