@@ -114,9 +114,9 @@ describe('prestamosController - extra cases', () => {
 
   test('actualizarEstadoPrestamo - error durante consulta provoca rollback y 500', async () => {
     const mockConnection = createMockConnection();
-    /* eslint-disable-next-line no-unused-vars */
-    mockConnection.query.mockImplementation(async _sql => {
-      throw new Error('DB unexpected error');
+    mockConnection.query.mockImplementation(async sql => {
+      // incluir el SQL en el mensaje de error para reutilizar el parámetro y facilitar debugging
+      throw new Error(`DB unexpected error: ${String(sql)}`);
     });
 
     await jest.unstable_mockModule('../database/database.js', () => ({
