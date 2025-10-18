@@ -1,0 +1,36 @@
+name: CI - Tests & SonarCloud
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-sonar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (backend)
+        working-directory: API-BANCO
+        run: npm ci
+
+      - name: Run tests with coverage and junit report (backend)
+        working-directory: API-BANCO
+        env:
+          JEST_JUNIT_OUTPUT: ./coverage/junit.xml
+        run: npm run test:ci
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          args: >
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
