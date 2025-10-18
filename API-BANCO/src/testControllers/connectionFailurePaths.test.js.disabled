@@ -1,3 +1,0 @@
-// Disabled placeholder for connectionFailurePaths test — intentionally ignored.
-// Original test caused mock ordering and module cache issues; kept here for
-// reference only. Remove this file if you want to permanently delete the test.
