@@ -16,13 +16,13 @@ await jest.unstable_mockModule('mysql2/promise', () => {
 const { getConnection } = await import('./database.js');
 
 describe('getConnection', () => {
-    beforeAll(() => {
+  beforeAll(() => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
   afterAll(() => {
     console.error.mockRestore();
   });
-  
+
   it('debe devolver una conexión simulada', async () => {
     const connection = await getConnection();
     expect(connection).toHaveProperty('query');

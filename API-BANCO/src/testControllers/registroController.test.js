@@ -44,16 +44,30 @@ describe('registrarUsuario', () => {
   });
 
   it('debe devolver 400 si el correo o numero de cuenta ya existen', async () => {
-    req.body = { nombre: 'A', email: 'a@a.com', password: '123', numero_cuenta: '100', tipo: 'ahorros' };
+    req.body = {
+      nombre: 'A',
+      email: 'a@a.com',
+      password: '123',
+      numero_cuenta: '100',
+      tipo: 'ahorros',
+    };
     // Simular SELECT que devuelve filas existentes
     mockConnection.query.mockResolvedValueOnce([[{ id: 1 }]]);
     await registrarUsuario(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ message: 'El correo o el número de cuenta ya están registrados.' });
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'El correo o el número de cuenta ya están registrados.',
+    });
   });
 
   it('debe crear el usuario y devolver 201 en caso exitoso', async () => {
-    req.body = { nombre: 'Ana', email: 'ana@example.com', password: '123456', numero_cuenta: '1000000001', tipo: 'ahorros' };
+    req.body = {
+      nombre: 'Ana',
+      email: 'ana@example.com',
+      password: '123456',
+      numero_cuenta: '1000000001',
+      tipo: 'ahorros',
+    };
     // SELECT no encuentra nada
     mockConnection.query.mockResolvedValueOnce([[]]);
     // hash la contraseña
@@ -69,7 +83,13 @@ describe('registrarUsuario', () => {
   });
 
   it('debe devolver 500 si ocurre un error', async () => {
-    req.body = { nombre: 'Ana', email: 'ana@example.com', password: '123456', numero_cuenta: '1000000001', tipo: 'ahorros' };
+    req.body = {
+      nombre: 'Ana',
+      email: 'ana@example.com',
+      password: '123456',
+      numero_cuenta: '1000000001',
+      tipo: 'ahorros',
+    };
     db.getConnection.mockRejectedValueOnce(new Error('DB error'));
     await registrarUsuario(req, res);
     expect(res.status).toHaveBeenCalledWith(500);

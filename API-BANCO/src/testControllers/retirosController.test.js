@@ -65,7 +65,9 @@ describe('retirosController - realizarRetiro', () => {
     expect(mockConnection.beginTransaction).toHaveBeenCalled();
     expect(mockConnection.rollback).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Error al procesar la transacción.' }));
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Error al procesar la transacción.' })
+    );
   });
 
   it('debe devolver error si fondos insuficientes', async () => {
@@ -74,6 +76,8 @@ describe('retirosController - realizarRetiro', () => {
     expect(mockConnection.beginTransaction).toHaveBeenCalled();
     expect(mockConnection.rollback).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Error al procesar la transacción.' }));
-  });
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Error al procesar la transacción.' })
+    );
+  });
 });

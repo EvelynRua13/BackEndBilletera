@@ -2,21 +2,21 @@ import { jest } from '@jest/globals';
 
 // Mockar dependencias antes de importar el módulo
 await jest.unstable_mockModule('../database/database.js', () => ({
-  getConnection: jest.fn()
+  getConnection: jest.fn(),
 }));
 
 await jest.unstable_mockModule('bcryptjs', () => ({
   // bcryptjs is default-imported in the code, so expose default
   default: {
-    compare: jest.fn()
-  }
+    compare: jest.fn(),
+  },
 }));
 
 await jest.unstable_mockModule('jsonwebtoken', () => ({
   // jsonwebtoken is default-imported in the code, so expose default
   default: {
-    sign: jest.fn()
-  }
+    sign: jest.fn(),
+  },
 }));
 
 const { getConnection } = await import('../database/database.js');
@@ -27,20 +27,20 @@ const sign = jsonwebtokenModule.default.sign;
 const { iniciarSesion } = await import('../controllers/loginController.js');
 
 describe('iniciarSesion', () => {
-    beforeAll(() => {
+  beforeAll(() => {
     jest.spyOn(console, 'error').mockImplementation(() => {});
   });
   afterAll(() => {
     console.error.mockRestore();
   });
-  
+
   let req, res, connection;
 
   beforeEach(() => {
     req = { body: {} };
     res = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn(),
     };
     connection = { query: jest.fn(), release: jest.fn() };
     getConnection.mockResolvedValue(connection);
@@ -49,7 +49,9 @@ describe('iniciarSesion', () => {
   it('debe retornar 400 si faltan campos', async () => {
     await iniciarSesion(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ message: 'El correo y la contraseña son obligatorios.' });
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'El correo y la contraseña son obligatorios.',
+    });
   });
 
   it('debe retornar 401 si el usuario no existe', async () => {
@@ -81,7 +83,7 @@ describe('iniciarSesion', () => {
     expect(res.json).toHaveBeenCalledWith({
       message: 'Inicio de sesión exitoso.',
       token: 'fake-token',
-      usuario: { id: 1, email: 'test@example.com', nombre: 'Test' }
+      usuario: { id: 1, email: 'test@example.com', nombre: 'Test' },
     });
   });
 

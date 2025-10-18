@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { realizarDeposito} from '../controllers/depositosController.js';
+import { realizarDeposito } from '../controllers/depositosController.js';
 
 const router = Router();
 

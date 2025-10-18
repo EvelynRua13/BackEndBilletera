@@ -2,7 +2,7 @@ import { jest } from '@jest/globals';
 
 // Mock de la función getConnection antes de importar el módulo bajo prueba
 await jest.unstable_mockModule('../database/database.js', () => ({
-  getConnection: jest.fn()
+  getConnection: jest.fn(),
 }));
 
 const { getConnection } = await import('../database/database.js');
@@ -25,18 +25,25 @@ describe('getUserData', () => {
     req = { user: { email: 'test@example.com' } };
     res = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn()
+      json: jest.fn(),
     };
     connection = {
-      query: jest.fn()
+      query: jest.fn(),
     };
     getConnection.mockResolvedValue(connection);
   });
 
   it('debe responder con los datos del usuario si existe', async () => {
-    connection.query.mockResolvedValueOnce([[{ nombre: 'Test', numero_cuenta: '123', saldo: 100, tipo: 'ahorros' }]]);
+    connection.query.mockResolvedValueOnce([
+      [{ nombre: 'Test', numero_cuenta: '123', saldo: 100, tipo: 'ahorros' }],
+    ]);
     await getUserData(req, res);
-    expect(res.json).toHaveBeenCalledWith({ nombre: 'Test', numero_cuenta: '123', saldo: 100, tipo: 'ahorros' });
+    expect(res.json).toHaveBeenCalledWith({
+      nombre: 'Test',
+      numero_cuenta: '123',
+      saldo: 100,
+      tipo: 'ahorros',
+    });
   });
 
   it('debe responder 404 si el usuario no existe', async () => {

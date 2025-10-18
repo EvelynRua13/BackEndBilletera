@@ -48,7 +48,9 @@ describe('realizarTransaccion', () => {
     expect(mockConnection.beginTransaction).toHaveBeenCalled();
     expect(mockConnection.rollback).toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Error al procesar la transacción.' }));
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Error al procesar la transacción.' })
+    );
   });
 
   it('Retornar 500 para manejar fondos insuficientes', async () => {

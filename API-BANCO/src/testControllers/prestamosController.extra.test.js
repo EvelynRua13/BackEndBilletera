@@ -1,128 +1,139 @@
 import { jest } from '@jest/globals';
 
 const createMockConnection = () => ({
-    query: jest.fn(),
-    beginTransaction: jest.fn(),
-    commit: jest.fn(),
-    rollback: jest.fn(),
-    release: jest.fn(),
+  query: jest.fn(),
+  beginTransaction: jest.fn(),
+  commit: jest.fn(),
+  rollback: jest.fn(),
+  release: jest.fn(),
 });
 
 describe('prestamosController - extra cases', () => {
-    beforeEach(() => {
-        jest.resetAllMocks();
-        jest.resetModules();
+  beforeEach(() => {
+    jest.resetAllMocks();
+    jest.resetModules();
+  });
+
+  test('actualizarEstadoPrestamo - préstamo no encontrado devuelve 404 y rollback', async () => {
+    const mockConnection = createMockConnection();
+    mockConnection.query.mockImplementation(async sql => {
+      const s = sql && sql.toString();
+      if (s.includes('SELECT estado')) return [[]]; // simula sin filas
+      return [[]];
     });
 
-    test('actualizarEstadoPrestamo - préstamo no encontrado devuelve 404 y rollback', async () => {
-        const mockConnection = createMockConnection();
-        mockConnection.query.mockImplementation(async (sql) => {
-            const s = sql && sql.toString();
-            if (s.includes('SELECT estado')) return [[]]; // simula sin filas
-            return [[]];
-        });
+    await jest.unstable_mockModule('../database/database.js', () => ({
+      getConnection: async () => mockConnection,
+    }));
 
-        await jest.unstable_mockModule('../database/database.js', () => ({
-            getConnection: async () => mockConnection
-        }));
+    const { actualizarEstadoPrestamo } = await import('../controllers/prestamosController.js');
 
-        const { actualizarEstadoPrestamo } = await import('../controllers/prestamosController.js');
+    const req = { body: { prestamoId: 999, nuevoEstado: 'aceptado', usuarioId: 'ACC999' } };
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
 
-        const req = { body: { prestamoId: 999, nuevoEstado: 'aceptado', usuarioId: 'ACC999' } };
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+    await actualizarEstadoPrestamo(req, res);
 
-        await actualizarEstadoPrestamo(req, res);
+    expect(mockConnection.rollback).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Préstamo no encontrado.' })
+    );
+  });
 
-        expect(mockConnection.rollback).toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Préstamo no encontrado.' }));
+  test('actualizarEstadoPrestamo - préstamo ya procesado devuelve 400 y rollback', async () => {
+    const mockConnection = createMockConnection();
+    mockConnection.query.mockImplementation(async sql => {
+      const s = sql && sql.toString();
+      if (s.includes('SELECT estado')) return [[{ estado: 'aceptado' }]];
+      return [{}];
     });
 
-    test('actualizarEstadoPrestamo - préstamo ya procesado devuelve 400 y rollback', async () => {
-        const mockConnection = createMockConnection();
-        mockConnection.query.mockImplementation(async (sql) => {
-            const s = sql && sql.toString();
-            if (s.includes('SELECT estado')) return [[{ estado: 'aceptado' }]];
-            return [{}];
-        });
+    await jest.unstable_mockModule('../database/database.js', () => ({
+      getConnection: async () => mockConnection,
+    }));
 
-        await jest.unstable_mockModule('../database/database.js', () => ({
-            getConnection: async () => mockConnection
-        }));
+    const { actualizarEstadoPrestamo } = await import('../controllers/prestamosController.js');
 
-        const { actualizarEstadoPrestamo } = await import('../controllers/prestamosController.js');
+    const req = { body: { prestamoId: 1, nuevoEstado: 'rechazado', usuarioId: 'ACC123' } };
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
 
-        const req = { body: { prestamoId: 1, nuevoEstado: 'rechazado', usuarioId: 'ACC123' } };
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+    await actualizarEstadoPrestamo(req, res);
 
-        await actualizarEstadoPrestamo(req, res);
+    expect(mockConnection.rollback).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'No se puede modificar un préstamo ya procesado.' })
+    );
+  });
 
-        expect(mockConnection.rollback).toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'No se puede modificar un préstamo ya procesado.' }));
+  test('crearSolicitudPrestamo - fallo en INSERT provoca rollback y 500', async () => {
+    const mockConnection = createMockConnection();
+    mockConnection.query.mockImplementation(async sql => {
+      const s = sql && sql.toString();
+      if (s.includes('SELECT COUNT')) return [[{ count: 0 }]];
+      if (s.includes('INSERT INTO deudas')) throw new Error('DB insert error');
+      return [{}];
     });
 
-    test('crearSolicitudPrestamo - fallo en INSERT provoca rollback y 500', async () => {
-        const mockConnection = createMockConnection();
-        mockConnection.query.mockImplementation(async (sql) => {
-            const s = sql && sql.toString();
-            if (s.includes('SELECT COUNT')) return [[{ count: 0 }]];
-            if (s.includes('INSERT INTO deudas')) throw new Error('DB insert error');
-            return [{}];
-        });
+    await jest.unstable_mockModule('../database/database.js', () => ({
+      getConnection: async () => mockConnection,
+    }));
 
-        await jest.unstable_mockModule('../database/database.js', () => ({
-            getConnection: async () => mockConnection
-        }));
+    const { crearSolicitudPrestamo } = await import('../controllers/prestamosController.js');
 
-        const { crearSolicitudPrestamo } = await import('../controllers/prestamosController.js');
+    const req = { body: { cuentaId: 'ACC321', monto: 1500, plazo: 3 } };
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
 
-        const req = { body: { cuentaId: 'ACC321', monto: 1500, plazo: 3 } };
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+    await crearSolicitudPrestamo(req, res);
 
-        await crearSolicitudPrestamo(req, res);
+    expect(mockConnection.rollback).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ message: 'Error al procesar la solicitud de préstamo.' })
+    );
+    expect(res.json.mock.calls[0][0].error).toEqual(expect.stringContaining('DB insert error'));
+  });
 
-        expect(mockConnection.rollback).toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json.mock.calls[0][0]).toEqual(expect.objectContaining({ message: 'Error al procesar la solicitud de préstamo.' }));
-        expect(res.json.mock.calls[0][0].error).toEqual(expect.stringContaining('DB insert error'));
+  test('actualizarEstadoPrestamo - estado inválido devuelve 400', async () => {
+    await jest.unstable_mockModule('../database/database.js', () => ({
+      getConnection: async () => createMockConnection(),
+    }));
+
+    const { actualizarEstadoPrestamo } = await import('../controllers/prestamosController.js');
+
+    const req = { body: { prestamoId: 1, nuevoEstado: 'invalid_state', usuarioId: 'ACC1' } };
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+
+    await actualizarEstadoPrestamo(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Estado de préstamo inválido.' })
+    );
+  });
+
+  test('actualizarEstadoPrestamo - error durante consulta provoca rollback y 500', async () => {
+    const mockConnection = createMockConnection();
+    /* eslint-disable-next-line no-unused-vars */
+    mockConnection.query.mockImplementation(async _sql => {
+      throw new Error('DB unexpected error');
     });
 
-    test('actualizarEstadoPrestamo - estado inválido devuelve 400', async () => {
-        await jest.unstable_mockModule('../database/database.js', () => ({
-            getConnection: async () => createMockConnection()
-        }));
+    await jest.unstable_mockModule('../database/database.js', () => ({
+      getConnection: async () => mockConnection,
+    }));
 
-        const { actualizarEstadoPrestamo } = await import('../controllers/prestamosController.js');
+    const { actualizarEstadoPrestamo } = await import('../controllers/prestamosController.js');
 
-        const req = { body: { prestamoId: 1, nuevoEstado: 'invalid_state', usuarioId: 'ACC1' } };
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
+    const req = { body: { prestamoId: 2, nuevoEstado: 'aceptado', usuarioId: 'ACC2' } };
+    const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
 
-        await actualizarEstadoPrestamo(req, res);
+    await actualizarEstadoPrestamo(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Estado de préstamo inválido.' }));
-    });
-
-    test('actualizarEstadoPrestamo - error durante consulta provoca rollback y 500', async () => {
-        const mockConnection = createMockConnection();
-        mockConnection.query.mockImplementation(async (sql) => {
-            throw new Error('DB unexpected error');
-        });
-
-        await jest.unstable_mockModule('../database/database.js', () => ({
-            getConnection: async () => mockConnection
-        }));
-
-        const { actualizarEstadoPrestamo } = await import('../controllers/prestamosController.js');
-
-        const req = { body: { prestamoId: 2, nuevoEstado: 'aceptado', usuarioId: 'ACC2' } };
-        const res = { status: jest.fn().mockReturnThis(), json: jest.fn().mockReturnThis() };
-
-        await actualizarEstadoPrestamo(req, res);
-
-        expect(mockConnection.rollback).toHaveBeenCalled();
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Error al procesar la actualización.' }));
-    });
+    expect(mockConnection.rollback).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Error al procesar la actualización.' })
+    );
+  });
 });

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { agregarEgreso} from '../controllers/egresosController.js';
+import { agregarEgreso } from '../controllers/egresosController.js';
 
 const router = Router();
 
