@@ -17,12 +17,12 @@ describe('prestamosController - extra cases', () => {
   test('actualizarEstadoPrestamo - préstamo no encontrado devuelve 404 y rollback', async () => {
     const mockConnection = createMockConnection();
     mockConnection.query.mockImplementation(async sql => {
-      const s = sql && sql.toString();
+      const s = typeof sql === 'string' ? sql : (sql?.sql ?? sql?.text ?? '');
       if (s.includes('SELECT estado')) return [[]]; // simula sin filas
       return [[]];
     });
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 
@@ -43,12 +43,12 @@ describe('prestamosController - extra cases', () => {
   test('actualizarEstadoPrestamo - préstamo ya procesado devuelve 400 y rollback', async () => {
     const mockConnection = createMockConnection();
     mockConnection.query.mockImplementation(async sql => {
-      const s = sql && sql.toString();
+      const s = typeof sql === 'string' ? sql : (sql?.sql ?? sql?.text ?? '');
       if (s.includes('SELECT estado')) return [[{ estado: 'aceptado' }]];
       return [{}];
     });
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 
@@ -69,13 +69,13 @@ describe('prestamosController - extra cases', () => {
   test('crearSolicitudPrestamo - fallo en INSERT provoca rollback y 500', async () => {
     const mockConnection = createMockConnection();
     mockConnection.query.mockImplementation(async sql => {
-      const s = sql && sql.toString();
+      const s = typeof sql === 'string' ? sql : (sql?.sql ?? sql?.text ?? '');
       if (s.includes('SELECT COUNT')) return [[{ count: 0 }]];
       if (s.includes('INSERT INTO deudas')) throw new Error('DB insert error');
       return [{}];
     });
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 
@@ -95,7 +95,7 @@ describe('prestamosController - extra cases', () => {
   });
 
   test('actualizarEstadoPrestamo - estado inválido devuelve 400', async () => {
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => createMockConnection(),
     }));
 
@@ -119,7 +119,7 @@ describe('prestamosController - extra cases', () => {
       throw new Error(`DB unexpected error: ${String(sql)}`);
     });
 
-    await jest.unstable_mockModule('../database/database.js', () => ({
+    jest.unstable_mockModule('../database/database.js', () => ({
       getConnection: async () => mockConnection,
     }));
 
