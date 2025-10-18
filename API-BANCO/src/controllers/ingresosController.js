@@ -8,7 +8,7 @@ export const agregarIngreso = async (req, res) => {
     !cuentaDestino ||
     monto === undefined ||
     monto === null ||
-    isNaN(monto) ||
+    Number.isNaN(Number(monto)) ||
     Number(monto) <= 0
   ) {
     return res.status(400).json({ message: 'Datos de ingreso inválidos.' });

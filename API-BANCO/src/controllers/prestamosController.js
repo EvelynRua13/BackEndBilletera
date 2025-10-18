@@ -68,7 +68,7 @@ export const crearSolicitudPrestamo = async (req, res) => {
   const { cuentaId, monto, plazo } = req.body;
 
   // Validar datos de entrada
-  if (!cuentaId || !monto || !plazo || isNaN(monto) || monto <= 0) {
+  if (!cuentaId || !monto || !plazo || Number.isNaN(Number(monto)) || Number(monto) <= 0) {
     return res.status(400).json({
       message: 'Datos de solicitud inválidos.',
     });

@@ -1,4 +1,5 @@
 import { getConnection } from '../database/database.js';
+import logger from '../utils/logger.js';
 
 export const realizarDeposito = async (req, res) => {
   const { cuentaDestino, fecha, monto } = req.body || {};
@@ -9,7 +10,7 @@ export const realizarDeposito = async (req, res) => {
     !cuentaDestino ||
     monto === undefined ||
     monto === null ||
-    isNaN(monto) ||
+    Number.isNaN(Number(monto)) ||
     Number(monto) <= 0
   ) {
     return res.status(400).json({ message: 'Datos de depósito inválidos.' });
@@ -49,10 +50,11 @@ export const realizarDeposito = async (req, res) => {
     if (connection) {
       try {
         await connection.rollback();
-      } catch (e) {
-        // ignorar error en rollback
+      } catch (rollbackError) {
+        logger.error('Error during rollback:', rollbackError);
       }
     }
+    logger.error('Error processing deposit:', error);
     return res.status(500).json({ message: 'Error al procesar el depósito.' });
   } finally {
     if (connection && typeof connection.release === 'function') connection.release();

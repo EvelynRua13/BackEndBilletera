@@ -9,14 +9,14 @@ on:
 jobs:
   test-and-sonar:
     runs-on: ubuntu-latest
-    # Give the job minimal permissions required by Sonar and the Actions used here.
     permissions:
       contents: read
       pull-requests: write
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
-          # Sonar benefits from full history for blame/coverage linking
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -36,7 +36,5 @@ jobs:
 
       - name: SonarCloud Scan
         # Pin the action to a full commit SHA to avoid supply-chain surprises.
-        # If you prefer a tag, replace the SHA with the tag you trust (for example: @v1.0.0).
+        # The action will read SONAR_TOKEN from the job env above.
         uses: SonarSource/sonarcloud-github-action@ba3875ecf642b2129de2b589510c81a8b53dbf4e
-
-
