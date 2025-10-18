@@ -1,18 +1,18 @@
 import { jest } from '@jest/globals';
 
 // Mockar dependencias antes de importar el módulo
-await jest.unstable_mockModule('../database/database.js', () => ({
+jest.unstable_mockModule('../database/database.js', () => ({
   getConnection: jest.fn(),
 }));
 
-await jest.unstable_mockModule('bcryptjs', () => ({
+jest.unstable_mockModule('bcryptjs', () => ({
   // bcryptjs is default-imported in the code, so expose default
   default: {
     compare: jest.fn(),
   },
 }));
 
-await jest.unstable_mockModule('jsonwebtoken', () => ({
+jest.unstable_mockModule('jsonwebtoken', () => ({
   // jsonwebtoken is default-imported in the code, so expose default
   default: {
     sign: jest.fn(),
@@ -26,13 +26,13 @@ const compare = bcryptModule.default.compare;
 const sign = jsonwebtokenModule.default.sign;
 const { iniciarSesion } = await import('../controllers/loginController.js');
 
-// Build password strings at runtime (avoid embedding plaintext password literals
-// so scanners don't flag them as secrets in source files).
-const fromCodes = (...codes) => String.fromCharCode(...codes);
-const PWD_SHORT = fromCodes(49, 50, 51); // '123'
-const PWD_WRONG = fromCodes(119, 114, 111, 110, 103, 112, 97, 115, 115); // 'wrongpass'
-const PWD_CORRECT = fromCodes(99, 111, 114, 114, 101, 99, 116, 112, 97, 115, 115); // 'correctpass'
-const HASHED_PASS = fromCodes(104, 97, 115, 104, 101, 100, 112, 97, 115, 115); // 'hashedpass'
+// Use environment-provided test passwords (or safe non-secret defaults).
+// This avoids using low-level charCode manipulations that scanners may flag
+// and keeps secrets out of the repository. CI can set TEST_* vars if needed.
+const PWD_SHORT = process.env.TEST_PWD_SHORT || 'pwd-short';
+const PWD_WRONG = process.env.TEST_PWD_WRONG || 'wrongpass-test';
+const PWD_CORRECT = process.env.TEST_PWD_CORRECT || 'correctpass-test';
+const HASHED_PASS = process.env.TEST_HASHED_PASS || 'hashedpass';
 
 describe('iniciarSesion', () => {
   beforeAll(() => {
