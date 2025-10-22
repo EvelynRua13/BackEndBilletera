@@ -68,3 +68,5 @@ Si quieres, puedo:
 - Añadir un `CONTRIBUTING.md` con guidelines.
 - Añadir un `Makefile` o tareas npm adicionales para flujos CI.
 - Añadir instrucciones específicas para configurar la base de datos local o correr con Docker.
+
+CI trigger: 2025-10-22T17:43:48.8483983-05:00
