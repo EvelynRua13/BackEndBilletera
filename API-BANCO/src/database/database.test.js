@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 
 // Mockear mysql2/promise antes de importar el módulo
-await jest.unstable_mockModule('mysql2/promise', () => {
+jest.unstable_mockModule('mysql2/promise', () => {
   const mConnection = { query: jest.fn(), release: jest.fn() };
   // exportar como default porque el código hace `import mysql from 'mysql2/promise'`
   return {
