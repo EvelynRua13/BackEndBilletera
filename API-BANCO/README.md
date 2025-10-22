@@ -12,7 +12,7 @@ Pequeña API de ejemplo para gestionar usuarios, cuentas y operaciones bancarias
 1. Clona el repositorio y entra en la carpeta del proyecto:
 
 ```bash
-git clone <repo-url>
+git clone <https://github.com/EvelynRua13/BackEndBilletera.git>
 cd API-BANCO
 ```
 
